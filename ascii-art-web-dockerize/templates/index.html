@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Banner Generator</title>
+    <link rel="stylesheet" href="/static/app.css?v=future-grid-1">
+    <script src="/static/app.js" defer></script>
+</head>
+
+<body>
+    <div class="decor-layer" aria-hidden="true">
+        <div class="grid-plane"></div>
+        <div class="corner-frame corner-frame-one"></div>
+        <div class="corner-frame corner-frame-two"></div>
+        <div class="signal-column signal-column-one">
+            <span>ASCII</span>
+            <span>RENDER</span>
+            <span>LOCAL</span>
+            <span>MONO</span>
+        </div>
+        <div class="signal-column signal-column-two">
+            <span>1000B</span>
+            <span>SHADOW</span>
+            <span>STD</span>
+            <span>TOY</span>
+        </div>
+        <pre class="glyph-cloud">+ / # _ { } &gt; &lt; = @ : ; [ ]</pre>
+    </div>
+
+    <a class="skip-link" href="#asciiForm">Skip to generator</a>
+
+    <main id="mainContent" class="app-shell">
+        <header class="app-header">
+            <div class="header-copy">
+                <div class="brand-row">
+                    <span class="brand-mark" aria-hidden="true">
+                        <span>A</span>
+                        <span>01</span>
+                    </span>
+                    <div>
+                        <p class="eyebrow tracking-widest">ASCII ART WEB</p>
+                        <p class="brand-subline">LOCAL GLYPH ENGINE</p>
+                    </div>
+                </div>
+                <h1 class="tracking-tight">ASCII Banner Generator</h1>
+                <p class="intro">Forge plain text into terminal-scale banners with fast local rendering, tight feedback, and export-ready output.</p>
+                <div class="hero-readout" aria-label="Application capabilities">
+                    <span>3 banner systems</span>
+                    <span>{{.MaxTextBytes}} byte payload</span>
+                    <span>copy or save</span>
+                </div>
+            </div>
+
+            <aside class="control-tower" aria-label="System status">
+                <div id="appStatus" class="status-card" data-state="{{if .ErrorMsg}}danger{{else if .AsciiResult}}success{{else}}ready{{end}}" role="status" aria-live="polite">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <div>
+                        <p class="eyebrow tracking-widest">SYSTEM</p>
+                        <strong id="statusLabel">{{if .ErrorMsg}}Needs attention{{else if .AsciiResult}}Generated{{else}}Ready{{end}}</strong>
+                        <span id="statusDetail">{{if .ErrorMsg}}Check the message below.{{else if .AsciiResult}}Output is available.{{else}}Waiting for input.{{end}}</span>
+                    </div>
+                </div>
+                <dl class="system-readout">
+                    <div>
+                        <dt>Route</dt>
+                        <dd>/api/ascii-art</dd>
+                    </div>
+                    <div>
+                        <dt>Mode</dt>
+                        <dd>POST JSON</dd>
+                    </div>
+                    <div>
+                        <dt>Charset</dt>
+                        <dd>Printable ASCII</dd>
+                    </div>
+                </dl>
+            </aside>
+        </header>
+
+        <section class="workspace" aria-label="ASCII art generator">
+            <form id="asciiForm" class="panel input-panel" action="/ascii-art" method="post" data-max-length="{{.MaxTextBytes}}" aria-labelledby="inputTitle" novalidate>
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow tracking-widest">INPUT PROTOCOL</p>
+                        <h2 id="inputTitle" class="tracking-tight">Compose payload</h2>
+                    </div>
+                    <output id="charCount" class="counter" for="text">0 / {{.MaxTextBytes}}</output>
+                </div>
+
+                <div class="field-stack">
+                    <label class="field-label" for="text">Text to render</label>
+                    <textarea id="text" name="text" rows="8" maxlength="{{.MaxTextBytes}}" required spellcheck="false" autocomplete="off" placeholder="SIGNAL READY" aria-describedby="inputHint validationMessage">{{.Text}}</textarea>
+                </div>
+
+                <div class="field-meta">
+                    <span id="lineCount">0 lines</span>
+                    <span id="inputHint">Printable ASCII and line breaks only.</span>
+                </div>
+
+                <div class="sample-block">
+                    <p class="micro-label tracking-widest">QUICK LOAD</p>
+                    <div class="sample-row" aria-label="Quick text samples">
+                        <button class="sample-chip" type="button" data-sample="NEON SIGNAL">NEON SIGNAL</button>
+                        <button class="sample-chip" type="button" data-sample="SYSTEM READY">SYSTEM READY</button>
+                        <button class="sample-chip" type="button" data-sample="HELLO WORLD">HELLO WORLD</button>
+                    </div>
+                </div>
+
+                <fieldset class="banner-fieldset">
+                    <legend>Banner system</legend>
+                    <div class="banner-options">
+                        {{range $index, $banner := .Banners}}
+                        <label class="banner-option">
+                            <input type="radio" name="banner" value="{{$banner.Value}}" {{if eq $.SelectedBanner $banner.Value}}checked{{end}}>
+                            <span class="option-shell">
+                                <span class="option-index">0{{$index}}</span>
+                                <span class="option-copy">
+                                    <strong>{{$banner.Label}}</strong>
+                                    <small>{{$banner.Description}}</small>
+                                </span>
+                                <span class="option-marker" aria-hidden="true"></span>
+                            </span>
+                        </label>
+                        {{end}}
+                    </div>
+                </fieldset>
+
+                <div id="validationMessage" class="inline-feedback" role="status" aria-live="polite"></div>
+
+                <div class="actions">
+                    <button id="generateBtn" class="primary-button" type="submit">
+                        <span class="button-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <path d="M5 12h14"></path>
+                                <path d="m13 6 6 6-6 6"></path>
+                            </svg>
+                        </span>
+                        <span id="generateLabel">Generate</span>
+                    </button>
+                    <button id="clearBtn" class="secondary-button" type="button">
+                        <span class="button-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false">
+                                <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+                                <path d="M3 3v6h6"></path>
+                            </svg>
+                        </span>
+                        <span>Clear</span>
+                    </button>
+                </div>
+            </form>
+
+            <section class="panel output-panel" aria-labelledby="outputTitle">
+                <div class="panel-heading output-heading">
+                    <div>
+                        <p class="eyebrow tracking-widest">OUTPUT SURFACE</p>
+                        <h2 id="outputTitle" class="tracking-tight">Rendered banner</h2>
+                    </div>
+                    <div class="tool-actions">
+                        <button id="copyBtn" class="tool-button" type="button" aria-label="Copy ASCII output" disabled>
+                            <span class="button-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </span>
+                            <span>Copy</span>
+                        </button>
+                        <button id="downloadBtn" class="tool-button" type="button" aria-label="Save ASCII output" disabled>
+                            <span class="button-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <path d="M7 10l5 5 5-5"></path>
+                                    <path d="M12 15V3"></path>
+                                </svg>
+                            </span>
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="notice" class="notice {{if .ErrorMsg}}tone-danger{{else if .AsciiResult}}tone-success{{else}}tone-neutral{{end}}" role="{{if .ErrorMsg}}alert{{else}}status{{end}}" aria-live="polite">
+                    <strong id="noticeTitle">{{if .ErrorMsg}}Could not generate{{else if .AsciiResult}}Generated{{else}}No output yet{{end}}</strong>
+                    <span id="noticeText">{{if .ErrorMsg}}{{.ErrorMsg}}{{else if .AsciiResult}}Generated with the {{.SelectedBanner}} banner.{{else}}Submit text to create ASCII art.{{end}}</span>
+                </div>
+
+                <div class="output-frame">
+                    <div class="terminal-bar" aria-hidden="true">
+                        <span class="terminal-title">generated_output.txt</span>
+                        <span class="terminal-chip">mono</span>
+                        <span class="terminal-chip">live</span>
+                    </div>
+                    <pre id="asciiResult" class="ascii-output" data-empty="{{if .AsciiResult}}false{{else}}true{{end}}" tabindex="0">{{if .AsciiResult}}{{.AsciiResult}}{{else}}No output yet.{{end}}</pre>
+                </div>
+
+                <dl class="metrics" aria-label="Generation details">
+                    <div>
+                        <dt>Input</dt>
+                        <dd id="metricInput">0 chars</dd>
+                    </div>
+                    <div>
+                        <dt>Output</dt>
+                        <dd id="metricOutput">0 lines</dd>
+                    </div>
+                    <div>
+                        <dt>Banner</dt>
+                        <dd id="metricBanner">{{.SelectedBanner}}</dd>
+                    </div>
+                    <div>
+                        <dt>Time</dt>
+                        <dd id="metricTime">-</dd>
+                    </div>
+                </dl>
+            </section>
+        </section>
+    </main>
+</body>
+
+</html>

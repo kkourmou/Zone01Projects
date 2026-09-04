@@ -1,0 +1,6 @@
+.git
+.agent
+*.md
+*_test.go
+api_test.sh
+.gocache
